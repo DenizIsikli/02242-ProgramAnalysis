@@ -8,14 +8,14 @@ To run Python applications, we recommend creating a virtual environment containi
 both your Python applications dependencies and JPAMB.
 
 ```bash
-$ uv venv --no-project --clear --prompt jpamb-eval .jpamb-eval
+uv venv --no-project --clear --prompt jpamb-eval .jpamb-eval
 ```
 
 Now activate the virtual environment:
 
 ```bash
 # Using bash (but look for other options) 
-$ source .jpamb-eval/bin/activate
+source .jpamb-eval/bin/activate
 ```
 
 After this you should see a `(jpamb-eval)` in your prompt.
@@ -24,14 +24,14 @@ Now you can install both JPAMB and your python project in this new environment.
 For example to run any of the solution in [](solution/), you can do the following:
 
 ```bash
-$ uv pip install --editable . # Installs JPAMB
-$ uv pip install --editable solutions/syntactic # Installs the syntatic solution
+uv pip install --editable . # Installs JPAMB
+uv pip install --editable solutions/syntactic # Installs the syntatic solution
 ```
 
 Now you should be able to run JPAMB on any of the installed programs:
 
 ```bash
-$ jpamb -v analyse syntactic-bytecode
+jpamb -v analyse syntactic-bytecode
 ```
 
 ## Library
