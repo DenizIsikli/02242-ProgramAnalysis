@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """A very stupid syntactic bytecode analysis, that only checks for assertion errors."""
 
 import logging
