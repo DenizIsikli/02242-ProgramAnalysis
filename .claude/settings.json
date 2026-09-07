@@ -5,7 +5,9 @@
       "Bash(sudo apt update)",
       "Bash(sudo apt install -y python3.13-dev)",
       "Read(//usr/include/python3.13/**)",
-      "Bash(apt-cache policy *)"
+      "Bash(apt-cache policy *)",
+      "Bash(find / -iname \"*.py\" -path \"*jpamb*\" 2>/dev/null | grep -v syntactic | head -50)",
+      "Read(///wsl.localhost/Debian//**)"
     ]
   }
 }
