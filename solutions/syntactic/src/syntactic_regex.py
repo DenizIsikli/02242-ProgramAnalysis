@@ -39,14 +39,24 @@ def main():
     log.debug(f"found {res}")
     rest = content[res.end(0) : -1]
 
-    method_end = re.search(r"^\s*}", rest, re.MULTILINE)
+    brace_start = rest.index("{")
+    depth = 0
+    body_end = None
+    for i, ch in enumerate(rest[brace_start:], start=brace_start):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                body_end = i
+                break
 
-    if not method_end:
+    if body_end is None:
         log.error("Could not find end of method")
         log.error(rest)
         sys.exit(1)
 
-    body = rest[: method_end.start()]
+    body = rest[brace_start + 1 : body_end]
     log.debug(f"method body: {body!r}")
 
     assert_found = re.search(r"assert", body) is not None
@@ -58,15 +68,7 @@ def main():
         log.debug("No assertion")
         print("assertion error;not-found")
 
-    divide_or_end = re.search(r"/|(^\s*})", rest, re.MULTILINE)
-
-    if not divide_or_end:
-        log.error("Could not find end of method or divide")
-        log.error(rest)
-        sys.exit(1)
-
-    log.debug(f"found divide {divide_or_end}")
-    divide_found = divide_or_end.group(0) == "/"
+    divide_found = re.search(r"/", body) is not None
 
     if divide_found:
         log.debug("Found divide")
@@ -77,4 +79,4 @@ def main():
 
     for q in jpamb.QUERIES:
         if q != "assertion error" and q != "divide by zero":
-            print(f"{q};skip")
+            print(f"{q};skip-{q.replace(' ', '-')}")
