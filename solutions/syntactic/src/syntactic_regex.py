@@ -13,7 +13,7 @@ def main():
     absmethodid = jpamb.getmethodid(
         "syntaxer",
         "1.0",
-        "The Rice Theorem Cookers",
+        "Bobby",
         ["syntactic", "python"],
         for_science=True,
     )
@@ -50,10 +50,10 @@ def main():
 
     if open_loop_found:
         log.debug("Found while loop")
-        print("*;found")
+        print("*;found-loop")
     else:
         log.debug("No while loop")
-        print("*;not-found")
+        print("*;not-found-loop")
 
     null_pointer = re.search(r"null|(^\s*})", rest, re.MULTILINE)
 
@@ -67,10 +67,10 @@ def main():
 
     if null_pointer_found:
         log.debug("Found null pointer")
-        print("null pointer;found")
+        print("null pointer;found-null")
     else:
         log.debug("No null pointer")
-        print("null pointer;not-found")
+        print("null pointer;not-found-null")
 
     assert_or_end = re.search(r"assert|(^\s*})", rest, re.MULTILINE)
 
@@ -108,4 +108,4 @@ def main():
 
     for q in jpamb.QUERIES:
         if q not in ("assertion error", "divide by zero", "null pointer", "*"):
-            print(f"{q};skip")
+            print(f"{q};skip-{q.replace(' ', '-')}")
