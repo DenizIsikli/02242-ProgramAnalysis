@@ -193,6 +193,9 @@ class SignSet(Abstraction, Lattice):
 
         return SignSet(self.signs & other.signs)
 
+    def negate(self) -> "SignSet":
+        return SignSet(frozenset(-s for s in self.signs))
+
     def arithmetic(
         self, other: "SignSet", opr: jvm.BinaryOpr
     ) -> tuple["SignSet", set[str]]:
@@ -212,26 +215,69 @@ class SignSet(Abstraction, Lattice):
                 if 0 in self.signs:
                     output.update(other.signs)
 
-                return (SignSet(output), set())
+                return (SignSet(frozenset(output)), set())
+            case jvm.BinaryOpr.Sub:
+                return self.arithmetic(other.negate(), jvm.BinaryOpr.Add)
+            case jvm.BinaryOpr.Mul:
+                output = {x * y for x in self.signs for y in other.signs}
+                return (SignSet(frozenset(output)), set())
+            case jvm.BinaryOpr.Div:
+                nonzero = other.signs - {0}
+                output = set()
+                if 0 in self.signs and nonzero:
+                    output.add(0)
+                for x in self.signs - {0}:
+                    for y in nonzero:
+                        output.add(0)
+                        output.add(x * y)
+                errs = {"divide by zero"} if 0 in other.signs else set()
+                return (SignSet(frozenset(output)), errs)
+            case jvm.BinaryOpr.Rem:
+                nonzero = other.signs - {0}
+                output = set()
+                if nonzero:
+                    for x in self.signs:
+                        output.add(0)
+                        if x != 0:
+                            output.add(x)
+                errs = {"divide by zero"} if 0 in other.signs else set()
+                return (SignSet(frozenset(output)), errs)
             case _:
                 raise NotImplementedError(f"TODO: {opr}")
 
     def compare(self, other: "SignSet", opr: jvm.CmpOpr) -> Iterable[bool]:
-        match opr:
-            case jvm.CmpOpr.Le:
-                cases = set()
-                for x in self.signs:
-                    for y in other.signs:
-                        if x == 0 or y == 0:
-                            cases.add(x <= y)
-                            continue
-                        if x <= y:
-                            cases.add(True)
-                        if x >= y:
-                            cases.add(False)
-                return cases
-            case _:
-                raise NotImplementedError(f"TODO: {opr}")
+        def pair(x: Sign, y: Sign) -> set[bool]:
+            # Different signs fully determine the relational order
+            # (any negative < any zero < any positive).
+            if x != y:
+                match opr:
+                    case jvm.CmpOpr.Eq:
+                        return {False}
+                    case jvm.CmpOpr.Ne:
+                        return {True}
+                    case jvm.CmpOpr.Lt:
+                        return {x < y}
+                    case jvm.CmpOpr.Le:
+                        return {x <= y}
+                    case jvm.CmpOpr.Gt:
+                        return {x > y}
+                    case jvm.CmpOpr.Ge:
+                        return {x >= y}
+            # Same sign: if both are exactly zero, equality is certain.
+            elif x == 0:
+                match opr:
+                    case jvm.CmpOpr.Eq | jvm.CmpOpr.Le | jvm.CmpOpr.Ge:
+                        return {True}
+                    case jvm.CmpOpr.Ne | jvm.CmpOpr.Lt | jvm.CmpOpr.Gt:
+                        return {False}
+            # Same nonzero sign: magnitudes are unknown, so any outcome is possible.
+            return {True, False}
+
+        cases = set()
+        for x in self.signs:
+            for y in other.signs:
+                cases |= pair(x, y)
+        return cases
 
 
 from collections.abc import Iterable
